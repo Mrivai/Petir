@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Web;
 
-namespace Petir {
-	internal static class URLUtils {
+namespace Petir
+{
+    internal static class URLUtils {
 
 		public static string PathToURL(this string filePath, string removeBaseDir = null) {
 
 			if (!filePath.CheckIfValid()) {
 				return "";
 			}
-
 			return @"file:///" + filePath.Replace(@"\", "/");
 		}
 
@@ -22,17 +20,35 @@ namespace Petir {
 		public static bool IsURLOfflineFile(this string url) {
 			return url.StartsWith("file://", StringComparison.Ordinal);
 		}
-		/// <summary>
-		/// checks if URL is localhost
-		/// </summary>
-		public static bool IsURLLocalhost(this string url) {
-			return url.BeginsWith("http://localhost") || url.BeginsWith("localhost");
+        /// <summary>
+        /// checks if URL is localhost
+        /// </summary>
+        public static bool IsURLLocalhost(this string url) {
+            return url.BeginsWith("http://localhost") || url.BeginsWith("localhost");
 		}
 
-		/// <summary>
-		/// UrlDecodes a string
+        /// <summary>
+		/// checks if string is valid url
 		/// </summary>
-		public static string DecodeURL(this string url) {
+        /// bool isUri = Uri.IsWellFormedUriString(url, UriKind.RelativeOrAbsolute);
+		public static bool CheckURLValid(this string source)
+        {
+            //return Uri.IsWellFormedUriString(source, UriKind.RelativeOrAbsolute) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+            //source = CreatUri(source);
+            bool isUri = Uri.IsWellFormedUriString(source, UriKind.RelativeOrAbsolute);
+            if (isUri)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        /// <summary>
+        /// UrlDecodes a string
+        /// </summary>
+        public static string DecodeURL(this string url) {
 			if (url == null) {
 				return null;
 			}
@@ -111,21 +127,21 @@ namespace Petir {
 			public bool forFilePaths = false;
 
 			internal UrlDecoder(int bufferSize, Encoding encoding) {
-				this._bufferSize = bufferSize;
-				this._encoding = encoding;
-				this._charBuffer = new char[bufferSize];
+				_bufferSize = bufferSize;
+				_encoding = encoding;
+				_charBuffer = new char[bufferSize];
 			}
 
 			internal void AddByte(byte b) {
-				if (this._byteBuffer == null) {
-					this._byteBuffer = new byte[this._bufferSize];
+				if (_byteBuffer == null) {
+					_byteBuffer = new byte[_bufferSize];
 				}
-				this._byteBuffer[this._numBytes++] = b;
+				_byteBuffer[_numBytes++] = b;
 			}
 
 			internal void AddChar(char ch, bool checkChar = false) {
-				if (this._numBytes > 0) {
-					this.FlushBytes();
+				if (_numBytes > 0) {
+                    FlushBytes();
 				}
 
 				// ADD CHAR AS HEX .. IF NOT SUPPORTED IN FILEPATHS
@@ -138,44 +154,43 @@ namespace Petir {
 					}
 				}
 
-				this._charBuffer[this._numChars++] = ch;
+				_charBuffer[_numChars++] = ch;
 			}
 			internal void AddString(string str) {
-				if (this._numBytes > 0) {
-					this.FlushBytes();
+				if (_numBytes > 0) {
+					FlushBytes();
 				}
 				foreach (char ch in str) {
-					this._charBuffer[this._numChars++] = ch;
+					_charBuffer[_numChars++] = ch;
 				}
 			}
 
 			public void FlushBytes(bool checkChar = false) {
-				if (this._numBytes > 0) {
+				if (_numBytes > 0) {
 
 					if (checkChar && forFilePaths) {
 
-						char[] newChars = this._encoding.GetChars(this._byteBuffer, 0, this._numBytes);
-						this._numBytes = 0;
+						char[] newChars = _encoding.GetChars(_byteBuffer, 0, _numBytes);
+						_numBytes = 0;
 
 						foreach (char ch in newChars) {
 							AddChar(ch);
 						}
 
 					} else {
-
-						this._numChars += this._encoding.GetChars(this._byteBuffer, 0, this._numBytes, this._charBuffer, this._numChars);
-						this._numBytes = 0;
+						_numChars += _encoding.GetChars(_byteBuffer, 0, _numBytes, _charBuffer, _numChars);
+						_numBytes = 0;
 
 					}
 				}
 			}
 
 			internal string GetString() {
-				if (this._numBytes > 0) {
-					this.FlushBytes();
+				if (_numBytes > 0) {
+                    FlushBytes();
 				}
-				if (this._numChars > 0) {
-					return new string(this._charBuffer, 0, this._numChars);
+				if (_numChars > 0) {
+					return new string(_charBuffer, 0, _numChars);
 				}
 				return string.Empty;
 			}
@@ -272,9 +287,21 @@ namespace Petir {
 		/// UrlEncodes a string without the requirement for System.Web
 		/// </summary>
 		public static string EncodeURL(this string text) {
-			return System.Uri.EscapeDataString(text);
+			return Uri.EscapeDataString(text);
 		}
 
+        public static string GetQuery(this string text, string query)
+        {
+            return HttpUtility.ParseQueryString(new Uri(text).Query).Get(query);
+        }
 
-	}
+        public static string EncodedHtml(this string text)
+        {
+            return HttpUtility.HtmlEncode(text);
+        }
+        public static string GetHostname(this string text)
+        {
+            return new Uri(text).DnsSafeHost;
+        }
+    }
 }

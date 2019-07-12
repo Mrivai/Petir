@@ -5,7 +5,10 @@ namespace Petir {
     {
         public IResourceHandler Create(IBrowser browser, IFrame frame, string schemeName, IRequest request)
         {
+
             return new SchemeHandler(XBrowser.Instance);
         }
+
+        public static string SchemeName { get { return "pelitabangsa"; } }
     }
 }

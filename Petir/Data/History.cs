@@ -5,12 +5,11 @@ using System.IO;
 
 namespace Petir
 {
-
     internal class History
     {
         private static string AppsPath = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
 
-        private static string HistoryFile = AppsPath + "storage" + Path.DirectorySeparatorChar + "history.json";
+        private static string HistoryFile = AppsPath + @"storage\history.json";
 
         public List<HistoryItem> ListHistory = new List<HistoryItem>();
 
@@ -22,9 +21,11 @@ namespace Petir
                 h.Title = "Google";
                 h.Url = "https:\\www.google.com";
                 h.Tanggal = DateTime.UtcNow;
+                h.Id = Utils.GenerateNewUCID();
                 ListHistory.Add(h);
                 var history = JsonConvert.SerializeObject(ListHistory);
-                Utils.WriteFile(HistoryFile, history);
+                Utils.WriteFileAsync(HistoryFile, history);
+                Load();
             }
             else
             {
@@ -34,32 +35,48 @@ namespace Petir
 
         public void Add(string title, string url)
         {
+            foreach (HistoryItem item in ListHistory)
+            {
+                if (item.Url == url && item.Title == title)
+                {
+                    ListHistory.Remove(item);
+                }
+            }
             HistoryItem h = new HistoryItem();
             h.Title = title;
             h.Url = url;
             h.Tanggal = DateTime.UtcNow;
+            h.Id = Utils.GenerateNewUCID();
             ListHistory.Add(h);
-            Save();
         }
-
-        public void Delete(string url, DateTime dt)
+        public void Delete(int id)
         {
             foreach (HistoryItem item in ListHistory)
             {
-                if (item.Url.Contains(url) && item.Tanggal.Equals(dt))
+                if (item.Id.Equals(id))
                 {
                     ListHistory.Remove(item);
-                    Save();
                 }
             }
         }
-
+        public void Clear()
+        {
+            ListHistory.Clear();
+            HistoryItem h = new HistoryItem();
+            h.Title = "Google";
+            h.Url = "https:\\www.google.com";
+            h.Tanggal = DateTime.UtcNow;
+            h.Id = Utils.GenerateNewUCID();
+            ListHistory.Add(h);
+            Save();
+            Load();
+        }
         public void Save()
         {
             var history = JsonConvert.SerializeObject(ListHistory);
-            Utils.WriteFile(HistoryFile, history);
+            Utils.WriteFileAsync(HistoryFile, history);
+            ListHistory.Clear();
         }
-
         private void Load()
         {
             try
@@ -72,14 +89,24 @@ namespace Petir
                 Logger.w("Cannot Load History", ex);
             }
         }
+        private bool Find(int id)
+        {
+            foreach (HistoryItem item in ListHistory)
+            {
+                if (item.Id == id)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     public class HistoryItem
     {
         public string Title { get; set; }
-
         public string Url { get; set; }
-
+        public int Id { get; set; }
         public DateTime Tanggal { get; set; }
     }
 }

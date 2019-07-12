@@ -3,7 +3,6 @@ using CefSharp;
 using System.Windows.Forms;
 using System.Web;
 using System.IO;
-using System;
 
 namespace Petir
 {
@@ -30,12 +29,14 @@ namespace Petir
         private const int Automation = 26550;
 
         private const int auto = 26517;
+        private const int save = 26518;
+        private const int GetSource = 26519;
+        private const int SaveVideoAs = 26520;
 
         private const int CloseTab = 40007;
 		private const int RefreshTab = 40008;
         MainForm myForm;
-        
-        private IBrowser bro;
+        private bool LinksFromSelectionText = false;
 
         public ContextMenuHandler(MainForm form) {
 			myForm = form;
@@ -45,9 +46,8 @@ namespace Petir
 			
 			// clear the menu
 			model.Clear();
-            bro = browser;
             //enable expath locator mouse
-            var selected = browserControl.EvaluateScriptAsync("document.activeElement.localName").ToString();
+            //var selected = browserControl.EvaluateScriptAsync("document.activeElement.localName").ToString();
             //chek if form is exist
             //var formExists = browserControl.EvaluateScriptAsync("$('form').length");
             //if form exist enable autofill form
@@ -58,48 +58,61 @@ namespace Petir
                 // auto fill can be used for autobot, or like save password featured in google chrome
                 //browserControl.ExecuteScriptAsync(File.ReadAllText(Js.autofill));
             //}
-                    model.AddItem((CefMenuCommand)RefreshTab, "Refresh");
+            model.AddItem((CefMenuCommand)RefreshTab, "Refresh");
+
+            if (parameters.IsEditable)
+            {
+                model.AddItem(CefMenuCommand.Paste, "Paste");
+            }
             // to copy text
+
             if (parameters.SelectionText.CheckIfValid()) {
+                var x = model.AddSubMenu((CefMenuCommand)GoogleDork, "GoogleDork");
+                if (parameters.SelectionText.CheckURLValid())
+                {
+                    LinksFromSelectionText = true;
+                    model.AddItem((CefMenuCommand)OpenLinkInNewTab, "Open link in new tab");
+                }
+                else
+                {
                     model.AddItem(CefMenuCommand.Copy, "Copy");
                     model.AddItem((CefMenuCommand)Search, "Search");
+                    x.AddItem((CefMenuCommand)DorkInTitle, "InTitle");
+                    x.AddItem((CefMenuCommand)DorkInUrl, "InUrl");
+                    x.AddItem((CefMenuCommand)DorkInText, "InText");
+                    x.AddItem((CefMenuCommand)DorkSite, "Site");
+                    x.AddItem((CefMenuCommand)DorkLink, "Link");
+                    x.AddItem((CefMenuCommand)DorkFileType, "FileType");
+                    x.AddItem((CefMenuCommand)DorkExt, "Ext");
+                }
+            }
+            //Removing existing menu item
+            //bool removed = model.Remove(CefMenuCommand.ViewSource); // Remove "View Source" option
+            if (parameters.LinkUrl != "" && !parameters.SelectionText.CheckIfValid()) {
+                model.AddItem((CefMenuCommand)OpenLinkInNewTab, "Open link in new tab");
+				model.AddItem((CefMenuCommand)CopyLinkAddress, "Copy link");
 			}
-            
-			//Removing existing menu item
-			//bool removed = model.Remove(CefMenuCommand.ViewSource); // Remove "View Source" option
-			if (parameters.LinkUrl != "") {
-				    model.AddItem((CefMenuCommand)OpenLinkInNewTab, "Open link in new tab");
-				    model.AddItem((CefMenuCommand)CopyLinkAddress, "Copy link");
-                    model.AddItem((CefMenuCommand)SaveLinkAs, "Save page");
-			}
 
-			if (parameters.HasImageContents && parameters.SourceUrl.CheckIfValid()) {
-                // RIGHT CLICKED ON IMAGE
-                    model.AddItem((CefMenuCommand)SaveImageAs, "Save Image");
-            }
-
-			if (parameters.SelectionText != null) {
-
-                // TEXT IS SELECTED
-            }
-            if(selected != null)
-            {
-                model.AddSeparator();
-                var x = model.AddSubMenu((CefMenuCommand)GoogleDork, "GoogleDork");
-                x.AddItem((CefMenuCommand)DorkInTitle, "InTitle");
-                x.AddItem((CefMenuCommand)DorkInUrl, "InUrl");
-                x.AddItem((CefMenuCommand)DorkInText, "InText");
-                x.AddItem((CefMenuCommand)DorkSite, "Site");
-                x.AddItem((CefMenuCommand)DorkLink, "Link");
-                x.AddItem((CefMenuCommand)DorkFileType, "FileType");
-                x.AddItem((CefMenuCommand)DorkExt, "Ext");
-            }
-            
             model.AddSeparator();
-            model.AddItem((CefMenuCommand)ShowDevTools, "Developer tools");
-			model.AddItem(CefMenuCommand.ViewSource, "View source");
-            model.AddItem((CefMenuCommand)CloseTab, "Close tab");
+            var s = model.AddSubMenu((CefMenuCommand)save, "Save");
 
+            if (parameters.MediaType == ContextMenuMediaType.Image && parameters.HasImageContents && parameters.SourceUrl.CheckIfValid()) {
+                    s.AddItem((CefMenuCommand)SaveImageAs, "Save Image");
+            }
+            else if (parameters.MediaType == ContextMenuMediaType.Video && parameters.SourceUrl.CheckIfValid())
+            {
+                s.AddItem((CefMenuCommand)SaveVideoAs, "Save Video");
+            }
+            else
+            {
+                s.AddItem((CefMenuCommand)SaveLinkAs, "Save page");
+            }
+
+            model.AddSeparator();
+            model.AddItem((CefMenuCommand)GetSource, "View source");
+            model.AddItem((CefMenuCommand)ShowDevTools, "Developer tools");
+            model.AddItem((CefMenuCommand)CloseTab, "Close tab");
+            
         }
 
 		public bool OnContextMenuCommand(IWebBrowser browserControl, IBrowser browser, IFrame frame, IContextMenuParams parameters, CefMenuCommand commandId, CefEventFlags eventFlags) {
@@ -146,40 +159,51 @@ namespace Petir
 			}
 			if (id == CloseDevTools) {
 				browser.CloseDevTools();
-			}
+            }
 			if (id == SaveImageAs) {
-				browser.GetHost().StartDownload(parameters.SourceUrl);
-			}
-			if (id == SaveLinkAs) {
-				browser.GetHost().StartDownload(parameters.LinkUrl);
+                browser.GetHost().StartDownload(parameters.SourceUrl);
+            }
+            if (id == SaveVideoAs)
+            {
+                browser.GetHost().StartDownload(parameters.SourceUrl);
+            }
+            if (id == SaveLinkAs) {
+                browser.GetHost().StartDownload(parameters.PageUrl);
 			}
 			if (id == OpenLinkInNewTab) {
-                string u = parameters.LinkUrl;
-                myForm.InvokeOnParent(delegate () { myForm.AddNewBrowser(u); });
+                string url;
+                if (parameters.LinkUrl != "")
+                {
+                    url = parameters.LinkUrl;
+                    myForm.InvokeOnParent(delegate () { myForm.AddNewBrowser(url); });
+                }
+                else
+                {
+                    url = parameters.SelectionText;
+                    myForm.InvokeOnParent(delegate () { myForm.AddNewBrowser(url); });
+                }
             }
 			if (id == CopyLinkAddress) {
 				Clipboard.SetText(parameters.LinkUrl);
 			}
             if (id == CloseTab) {
-                //myForm.X.InvokeOnParent(delegate() { myForm.X.Dispose(); });
-                myForm.X.InvokeOnParent(delegate () { myForm.Tes(); });
+                myForm.X.InvokeOnParent(delegate () { myForm.CloseActiveTab(); });
             }
             if (id == RefreshTab) {
                 browser.Reload();
             }
-			return false;
-		}
-
-        private void OpenLink(string linkUrl)
-        {
-            myForm.AddNewBrowser(linkUrl);
+            if (id == GetSource)
+            {
+                myForm.InvokeOnParent(delegate () { myForm.ViewSource(); });
+            }
+            
+            return false;
         }
 
         private void newtab(string url)
         {
-            var newurl = "https://www.google.com/#q=" + HttpUtility.UrlEncode(url);
+            var newurl = "https://www.google.co.id/search?client=google&q=" + HttpUtility.UrlEncode(url);
             myForm.InvokeOnParent(delegate () { myForm.AddNewBrowser(newurl); });
-            //myForm.AddNewBrowser(newurl);
         }
 
 		public void OnContextMenuDismissed(IWebBrowser browserControl, IBrowser browser, IFrame frame) {
@@ -187,8 +211,6 @@ namespace Petir
 		}
 
 		public bool RunContextMenu(IWebBrowser browserControl, IBrowser browser, IFrame frame, IContextMenuParams parameters, IMenuModel model, IRunContextMenuCallback callback) {
-
-			// show default menu
 			return false;
 		}
         

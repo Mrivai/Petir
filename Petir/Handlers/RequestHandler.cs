@@ -1,37 +1,54 @@
-﻿using System.Collections.Specialized;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows.Forms;
 using CefSharp;
 using CefSharp.WinForms;
 
-namespace Petir {
-	internal class RequestHandler : IRequestHandler {
+namespace Petir
+{
+    internal class RequestHandler : IRequestHandler {
 		MainForm myForm;
         private Control parent;
+        private string oldAddress = "";
+        private Dictionary<ulong, MemoryStreamResponseFilter> responseDictionary = new Dictionary<ulong, MemoryStreamResponseFilter>();
+        public List<HeaderWrapper> RequestHeaders { get; private set; } = new List<HeaderWrapper>();
+        public HashSet<RequestWrapper> Resources { get; private set; } = new HashSet<RequestWrapper>();
+        public List<HeaderWrapper> ResponseHeaders { get; private set; } = new List<HeaderWrapper>();
 
         public RequestHandler(MainForm form) {
 			myForm = form;
 		}
 
-		// Summary:
-		//     Called when the browser needs credentials from the user.
-		//
-		// Parameters:
-		//   frame:
-		//     The frame object that needs credentials (This will contain the URL that is
-		//     being requested.)
-		//
-		//   isProxy:
-		//     indicates whether the host is a proxy server
-		//
-		//   callback:
-		//     Callback interface used for asynchronous continuation of authentication requests.
-		//
-		// Returns:
-		//     Return true to continue the request and call CefAuthCallback::Continue()
-		//     when the authentication information is available. Return false to cancel
-		//     the request.
-		public bool GetAuthCredentials(IWebBrowser browserControl, IBrowser browser, IFrame frame, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback) {
+        public bool CanGetCookies(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request)
+        {
+            return true;
+        }
+
+        public bool CanSetCookie(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, Cookie cookie)
+        {
+            return true;
+        }
+        
+        // Summary:
+        //     Called when the browser needs credentials from the user.
+        //
+        // Parameters:
+        //   frame:
+        //     The frame object that needs credentials (This will contain the URL that is
+        //     being requested.)
+        //
+        //   isProxy:
+        //     indicates whether the host is a proxy server
+        //
+        //   callback:
+        //     Callback interface used for asynchronous continuation of authentication requests.
+        //
+        // Returns:
+        //     Return true to continue the request and call CefAuthCallback::Continue()
+        //     when the authentication information is available. Return false to cancel
+        //     the request.
+        public bool GetAuthCredentials(IWebBrowser browserControl, IBrowser browser, IFrame frame, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback) {
 			
 			return false;
 		}
@@ -52,8 +69,10 @@ namespace Petir {
 		// Returns:
 		//     Return an IResponseFilter to intercept this response, otherwise return null
 		public IResponseFilter GetResourceResponseFilter(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response) {
-			return null;
-		}
+            MemoryStreamResponseFilter memoryStreamResponseFilter = new MemoryStreamResponseFilter();
+            responseDictionary.Add(request.Identifier, memoryStreamResponseFilter);
+            return memoryStreamResponseFilter;
+        }
 		//
 		// Summary:
 		//     Called before browser navigation.  If the navigation is allowed CefSharp.IWebBrowser.FrameLoadStart
@@ -74,30 +93,31 @@ namespace Petir {
 		// Returns:
 		//     Return true to cancel the navigation or false to allow the navigation to
 		//     proceed.
-		public bool OnBeforeBrowse(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool isRedirect) {
-			return false;
-		}
-		//
-		// Summary:
-		//     Called before a resource request is loaded. For async processing return CefSharp.CefReturnValue.ContinueAsync
-		//     and execute CefSharp.IRequestCallback.Continue(System.Boolean) or CefSharp.IRequestCallback.Cancel()
-		//
-		// Parameters:
-		//   frame:
-		//     The frame object
-		//
-		//   request:
-		//     the request object - can be modified in this callback.
-		//
-		//   callback:
-		//     Callback interface used for asynchronous continuation of url requests.
-		//
-		// Returns:
-		//     To cancel loading of the resource return CefSharp.CefReturnValue.Cancel or
-		//     CefSharp.CefReturnValue.Continue to allow the resource to load normally.
-		//     For async return CefSharp.CefReturnValue.ContinueAsync
-		public CefReturnValue OnBeforeResourceLoad(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IRequestCallback callback) {
-            
+        public bool OnBeforeBrowse(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool userGesture, bool isRedirect)
+        {
+            return false;
+        }
+
+        //
+        // Summary:
+        //     Called before a resource request is loaded. For async processing return CefSharp.CefReturnValue.ContinueAsync
+        //     and execute CefSharp.IRequestCallback.Continue(System.Boolean) or CefSharp.IRequestCallback.Cancel()
+        //
+        // Parameters:
+        //   frame:
+        //     The frame object
+        //
+        //   request:
+        //     the request object - can be modified in this callback.
+        //
+        //   callback:
+        //     Callback interface used for asynchronous continuation of url requests.
+        //
+        // Returns:
+        //     To cancel loading of the resource return CefSharp.CefReturnValue.Cancel or
+        //     CefSharp.CefReturnValue.Continue to allow the resource to load normally.
+        //     For async return CefSharp.CefReturnValue.ContinueAsync
+        public CefReturnValue OnBeforeResourceLoad(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IRequestCallback callback) {
             //
             // Summary:
             //     dipanggil untuk menganti user-agent ke mobile, ketika ukuran form webbrowser == 300 px
@@ -105,14 +125,33 @@ namespace Petir {
             var ch = (ChromiumWebBrowser)browserControl;
             parent = ch.Parent;
             var x = parent.FindForm() as XBrowser;
+            if (x.Ua != null)
+            {
+                var headers = request.Headers;
+                var userAgent = headers["User-Agent"];
+                headers["User-Agent"] = x.Ua;
+                request.Headers = headers;
+            }
+            /*
+             * if (myForm.X.Ua != string.Empty)
+            {
+                var headers = request.Headers;
+                var userAgent = headers["User-Agent"];
+                headers["User-Agent"] = myForm.X.Ua;
+                request.Headers = headers;
+            }
+            var ch = (ChromiumWebBrowser)browserControl;
+            parent = ch.Parent;
+            var x = parent.FindForm() as XBrowser;
             if (x.Ua !=null)
             {
                 var headers = request.Headers;
                 var userAgent = headers["User-Agent"];
-                headers["User-Agent"] = userAgent + x.Ua;
+                headers["User-Agent"] = x.Ua;
                 request.Headers = headers;
             }
-			return CefReturnValue.Continue;
+            */
+            return CefReturnValue.Continue;
 		}
         //
         // Summary:
@@ -228,13 +267,15 @@ namespace Petir {
 		//   status:
 		//     indicates how the process terminated.
 		public void OnRenderProcessTerminated(IWebBrowser browserControl, IBrowser browser, CefTerminationStatus status) {
+
 		}
 		//
 		// Summary:
 		//     Called on the CEF UI thread when the render view associated with browser
 		//     is ready to receive/handle IPC messages in the render process.
 		public void OnRenderViewReady(IWebBrowser browserControl, IBrowser browser) {
-		}
+            //
+        }
 		//
 		// Summary:
 		//     Called on the CEF IO thread when a resource load has completed.
@@ -255,28 +296,70 @@ namespace Petir {
 		//   receivedContentLength:
 		//     is the number of response bytes actually read.
 		public void OnResourceLoadComplete(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response, UrlRequestStatus status, long receivedContentLength) {
+            
             if (request.Url.Contains(".user.js"))
             {
                 var code = browserControl.GetSourceAsync().ToString();
                 myForm.monyet.InstallScript(request.Url, code);
             }
-		}
-		//
-		// Summary:
-		//     Called on the IO thread when a resource load is redirected. The CefSharp.IRequest.Url
-		//     parameter will contain the old URL and other request-related information.
-		//
-		// Parameters:
-		//   frame:
-		//     The frame that is being redirected.
-		//
-		//   request:
-		//     the request object - cannot be modified in this callback
-		//
-		//   newUrl:
-		////     the new URL and can be changed if desired
+            if (oldAddress != browserControl.Address || oldAddress == "")
+            {
+                oldAddress = browserControl.Address;
+                Resources.Clear();
+                ResponseHeaders.Clear();
+                RequestHeaders.Clear();
+            }
+            Dictionary<string, string> dictionary = response.Headers.AllKeys.ToDictionary((string x) => x, (string x) => response.Headers[x]);
+            ResponseHeaders.Add(new HeaderWrapper(request.Identifier, dictionary));
+            Dictionary<string, string> strs = request.Headers.AllKeys.ToDictionary((string x) => x, (string x) => request.Headers[x]);
+            RequestHeaders.Add(new HeaderWrapper(request.Identifier, strs));
+            if (responseDictionary.TryGetValue(request.Identifier, out MemoryStreamResponseFilter memoryStreamResponseFilter))
+            {
+                byte[] data = memoryStreamResponseFilter.Data;
+                Resources.Add(new RequestWrapper(request.Url, request.ResourceType, response.MimeType, data, request.Identifier));
+            }
+            //var x = response.MimeType;
+            //scrape all link on current web here
+            //myForm.X.Appender(request.Url.GetQuery("path"));
+
+            //myForm.X.Appender(request.Url + " = " + status);
+            /*
+            if (request.Url.Contains(myForm.ViewsourceURL))
+            {
+                
+                var code = myForm.viewer.View(request.Url.GetQuery("path"));
+                MessageBox.Show(code.ToString());
+                var t = string.Format("var x = @{0}{1}{0};", '"', code);
+                t += string.Format("$({0}#xmpTagId{0}).text(x);", '"');
+                myForm.X.ExecuteJs(t);
+                
+            }
+            */
+        }
+        //
+        // Summary:
+        //     Called on the IO thread when a resource load is redirected. The CefSharp.IRequest.Url
+        //     parameter will contain the old URL and other request-related information.
+        //
+        // Parameters:
+        //   frame:
+        //     The frame that is being redirected.
+        //
+        //   request:
+        //     the request object - cannot be modified in this callback
+        //
+        //   newUrl:
+        ////     the new URL and can be changed if desired
         public void OnResourceRedirect(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response, ref string newUrl)
         {
+            if (myForm.fastmode && !request.Url.Contains("google.com") && !request.Url.Contains(myForm.GoogleWeblightUrl))
+            {
+                newUrl = myForm.GoogleWeblightUrl + request.Url;
+            }
+            if (newUrl.Contains("restricted.tri.co.id"))
+            {
+                newUrl = myForm.GoogleWeblightUrl + request.Url;
+            }
         }
 
         //
@@ -301,50 +384,53 @@ namespace Petir {
         //     the resource modify request (url, headers or post body) and return true.
         public bool OnResourceResponse(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response) {
 
-
 			int code = response.StatusCode;
+            if (code == 504)
+            {
+                request.Url = myForm.CannotConnectURL + "?path=" + request.Url.EncodeURL();
+                return true;
+            }
+            
+            /*
+            // if NOT FOUND
+            if (code == 404) {
+
+                if (!request.Url.IsURLLocalhost()) {
+
+                    // redirect to web archive to try and find older version
+                    request.Url = '' + request.Url;
+                } else {
+
+                    // show offline "file not found" page
+                    request.Url = myForm.FileNotFoundURL + "?path=" + request.Url.EncodeURL();
+                }
+
+                return false;
+            }
 
 
-			// if NOT FOUND
-			if (code == 404) {
+             if FILE NOT FOUND
+            if (code == 0 && request.Url.IsURLOfflineFile()) {
+                string path = request.Url.FileURLToPath();
+                if (path.FileNotExists()) {
 
-				if (!request.Url.IsURLLocalhost()) {
+                    // show offline "file not found" page
+                    request.Url = myForm.FileNotFoundURL + "?path=" + path.EncodeURL();
+                    return true;
 
-					// redirect to web archive to try and find older version
-					request.Url = "http://web.archive.org/web/*/" + request.Url;
-				} else {
+                }
+            } else {
 
-					// show offline "file not found" page
-					request.Url = myForm.FileNotFoundURL + "?path=" + request.Url.EncodeURL();
-				}
+                // if CANNOT CONNECT
+                if (code == 0 || code == 444 || (code >= 500 && code <= 599)) {
+                    // show offline "cannot connect to server" page
+                    request.Url = myForm.CannotConnectURL + "?path=" + request.Url.EncodeURL();
+                    return true;
+                }
 
-				return true;
-			}
-
-
-			// if FILE NOT FOUND
-			if (code == 0 && request.Url.IsURLOfflineFile()) {
-				string path = request.Url.FileURLToPath();
-				if (path.FileNotExists()) {
-
-					// show offline "file not found" page
-					request.Url = myForm.FileNotFoundURL + "?path=" + path.EncodeURL();
-					return true;
-
-				}
-			} else {
-
-				// if CANNOT CONNECT
-				if (code == 0 || code == 444 || (code >= 500 && code <= 599)) {
-
-					// show offline "cannot connect to server" page
-					request.Url = myForm.CannotConnectURL;
-					return true;
-				}
-
-			}
-			
-			return false;
+            }
+            */
+            return false;
 		}
 
         public bool OnSelectClientCertificate(IWebBrowser browserControl, IBrowser browser, bool isProxy, string host, int port, X509Certificate2Collection certificates, ISelectClientCertificateCallback callback)

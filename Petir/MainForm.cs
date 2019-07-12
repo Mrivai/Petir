@@ -1,7 +1,6 @@
 ﻿using CefSharp;
 using CefSharp.WinForms;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using WeifenLuo.WinFormsUI.Docking;
@@ -10,93 +9,109 @@ namespace Petir
 {
     public partial class MainForm : Form
     {
-        
-        private string UserAgent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.110 Safari/537.36";
+        private static string AppsPath = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
+        private static string FileBookmark = AppsPath + @"storage\bookmark.json";
+        //internal string GoogleTranslateURL = "https://translate.google.com/translate?hl=en&sl=auto&tl=en&prev=search&u=";
+        public string UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36";
+        public string GoogleWeblightUserAgent = "Mozilla/5.0 (Linux; Android 4.2.1; en-us; Nexus 5 Build/JOP40D) AppleWebKit/535.19 (KHTML, like Gecko; googleweblight) Chrome/38.0.1025.166 Mobile Safari/535.19";
         private string Branding = "Petir";
         private string Homepage = "https://www.google.com";
-        //private string Homepage = "xcode.com/register";
-        private string DownloadsURL = "sharpbrowser://storage/downloads.html";
-        public string FileNotFoundURL = "sharpbrowser://storage/errors/notFound.html";
+        internal string DownloadsURL = "pelitabangsa://browser/downloads.html";
+        internal string ViewsourceURL = "pelitabangsa://browser/view.html";
+        //internal string HistoryURL = "pelitabangsa://browser/history.html";
+        internal string BookmarkURL = "pelitabangsa://browser/bookmark.html";
+        internal string HistoryURL = "pelitabangsa://browser/video.html";
+        public string FileNotFoundURL = "pelitabangsa://browser/errors/notFound.html";
+        public string CannotConnectURL = "pelitabangsa://browser/errors/cannotConnect.html";
+        public string SearchURL = "https://www.google.co.id/search?client=google&q=";
+		public string SearchGoogleTranslate= "https://translate.google.com/translate?hl=id&sl=en&u=";
 
-
-        public string CannotConnectURL = "sharpbrowser://storage/errors/cannotConnect.html";
-        public string SearchURL = "https://www.google.com/#q=";
-        public string NewTabURL = "about:blank";
-
-        public Dictionary<int, DownloadItem> downloads;
-        public Dictionary<int, string> downloadNames;
-        public List<int> downloadCancelRequests;
-
-
-        internal HostHandler HHandler;
+        public string GoogleWeblightUrl = "https://googleweblight.com/?lite_url=";
+        public string NewTabURL = "https://www.google.com/";
+       
         internal DownloadHandler DHandler;
         internal ContextMenuHandler MHandler;
         internal LifeSpanHandler LHandler;
+        internal DownloadManager Idm = new DownloadManager();
+        internal ViewSource viewer;
+        internal History history;
+        internal Bookmark bookmark;
+        internal Password password;
+        internal Webshell webshell;
+        public bool fastmode = false;
 
-        internal void Appender(string x)
-        {
-            X.Appender(x);
-        }
+       
 
         internal KeyboardHandler KHandler;
         internal RequestHandler RHandler;
         internal Scriptmonkey monyet;
-        internal ChromiumWebBrowser Browser;
 
         internal XBrowser X
         {
             get
             {
-                if (XDock.ActiveDocument != null)
-                {
-                    return XDock.ActiveDocument.DockHandler.Form as XBrowser;
-                }
-                return null;
+                return XDock.ActiveDocument.DockHandler.Form as XBrowser;
             }
         }
-        
+
         public MainForm()
         {
             InitializeComponent();
+            Cef.EnableHighDPISupport();
             AutoScaleMode = AutoScaleMode.Dpi;
             InitCef();
             InitHotkeys();
-            Cef.EnableHighDPISupport();
+            monyet = new Scriptmonkey();
             AddNewBrowser(Homepage);
+            history = new History();
+            bookmark = new Bookmark();
+            password = new Password();
+            webshell = new Webshell();
+            viewer = new ViewSource();
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
-        {
-            //AddNewBrowser(Homepage);
-        }
-        
         private void InitCef()
         {
+            CefSharpSettings.ShutdownOnExit = false;
             CefSettings settings = new CefSettings();
+
             settings.RegisterScheme(new CefCustomScheme
             {
-                SchemeName = "sharpbrowser",
+                SchemeName = SchemeHandlerFactory.SchemeName,
                 SchemeHandlerFactory = new SchemeHandlerFactory()
             });
+            settings.LogSeverity = LogSeverity.Error;
+            settings.CefCommandLineArgs.Add("debug-plugin-loading", "1");
+            //settings.CefCommandLineArgs.Add("debug-plugin-loading", "1");
             settings.UserAgent = UserAgent;
+            settings.CefCommandLineArgs.Add("proxy-server", "127.0.0.1:9666");
+            settings.CefCommandLineArgs.Add("proxy-auto-detect", "1");
+            settings.CefCommandLineArgs.Add("winhttp-proxy-resolver", "1");
+            //settings.CefCommandLineArgs.Add("no-proxy-server", "1");
+            settings.CefCommandLineArgs.Add("ppapi-flash-path", AppDomain.CurrentDomain.SetupInformation.ApplicationBase + @"PepperFlash\pepflashplayer.dll");
+            settings.CefCommandLineArgs.Add("ppapi-flash-version", "32.0.0.192");
+            settings.CefCommandLineArgs.Add("enable-npapi", "1");
+            //settings.CefCommandLineArgs.Add("enable-media-stream", "1");
+            settings.CefCommandLineArgs.Add("disable-gpu", "1");
+            //settings.CefCommandLineArgs.Add("disable-gpu-vsync", "1");
             settings.IgnoreCertificateErrors = true;
             settings.ResourcesDirPath = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
             settings.CachePath = GetAppDir("Cache");
+            //.AddWebPluginPath(@"C:\Program Files (x86)\VideoLAN\VLC\npvlc.dll");
+            //CefRuntime.AddWebPluginDirectory(@"C:\Program Files (x86)\VideoLAN\VLC");
             Cef.Initialize(settings);
-
-            HHandler = new HostHandler(this);
+            
             DHandler = new DownloadHandler(this);
             LHandler = new LifeSpanHandler(this);
             MHandler = new ContextMenuHandler(this);
             KHandler = new KeyboardHandler(this);
             RHandler = new RequestHandler(this);
-
-            InitDownloads();
+            
         }
 
         internal void Execute(string v)
         {
-            X.xecute(v);
+            X.Xecute(v);
         }
 
         private string GetAppDir(string name)
@@ -121,11 +136,27 @@ namespace Petir
             KeyboardHandler.AddHotKey(this, NextUrl, Keys.Right, true);
             KeyboardHandler.AddHotKey(this, PrevUrl, Keys.Left, true);
             KeyboardHandler.AddHotKey(this, Print, Keys.P, true);
-
+            KeyboardHandler.AddHotKey(this, OpenDownloadsTab, Keys.J, true);
+            KeyboardHandler.AddHotKey(this, OpenHistoryTab, Keys.H, true);
+            KeyboardHandler.AddHotKey(this, OpenBookmarkTab, Keys.B, true);
+            KeyboardHandler.AddHotKey(this, ViewSource, Keys.U, true);
             // search hotkeys
             KeyboardHandler.AddHotKey(this, OpenSearch, Keys.F, true);
             KeyboardHandler.AddHotKey(this, CloseSearch, Keys.Escape);
             KeyboardHandler.AddHotKey(this, CloseActiveTab, Keys.Escape);
+
+            KeyboardHandler.AddHotKey(this, FullScreenshot, Keys.S, true, true);
+            KeyboardHandler.AddHotKey(this, Screenshot, Keys.S, true);
+        }
+
+        private void FullScreenshot()
+        {
+            X.TakeFullScreenshot();
+        }
+
+        private void Screenshot()
+        {
+            X.TakeScreenshot();
         }
 
         private void Print()
@@ -133,9 +164,9 @@ namespace Petir
             X.Browser.Print();
         }
 
-        private void CloseActiveTab()
+        public void CloseActiveTab()
         {
-            X.Browser.Dispose();
+            X.Browser.GetBrowserHost().CloseBrowser(true);
             X.Dispose();
         }
 
@@ -158,7 +189,7 @@ namespace Petir
         {
             X.Browser.Back();
         }
-        
+
         private void CloseSearch()
         {
             X.OpenCloseFind();
@@ -168,19 +199,52 @@ namespace Petir
         {
             X.OpenCloseFind();
         }
+
         public void AddBlankTab()
         {
             AddNewBrowser(NewTabURL);
         }
-        #endregion
 
-        //private void AddBlankTab() { AddNewBrowser(Homepage); }
+        public void ViewSource()
+        {
+            var domain = X.Browser.Address;
+            var doc = X.GetSource();
+            if (doc != null)
+            {
+                viewer.Add(domain, doc);
+                AddNewBrowser(ViewsourceURL + "?path=" + domain);
+            }
+        }
+
+        public void OpenDownloadsTab()
+        {
+            AddNewBrowser(DownloadsURL);
+        }
+
+        private void OpenBookmarkTab()
+        {
+            AddNewBrowser(BookmarkURL);
+        }
+
+        private void OpenHistoryTab()
+        {
+            AddNewBrowser(HistoryURL);
+        }
+
+        #endregion
 
         public ChromiumWebBrowser AddNewBrowserTab(string url)
         {
             return (ChromiumWebBrowser)this.Invoke((Func<ChromiumWebBrowser>)delegate
             {
                 XBrowser xyz = new XBrowser(this, url);
+                if (XDock.DocumentStyle == DocumentStyle.SystemMdi)
+                {
+                    xyz.MdiParent = this;
+                    xyz.Show();
+                }
+                else
+                    xyz.Show(XDock);
                 return xyz.Browser;
             });
         }
@@ -196,112 +260,27 @@ namespace Petir
             else
                 X.Show(XDock);
         }
-
-        internal void Tes()
-        {
-            if (XDock.ActiveDocument.DockHandler.IsActivated)
-            {
-                var x = XDock.ActiveDocument.DockHandler.Form as XBrowser;
-                Appender(x.Text + x.IsActivated + Environment.NewLine);
-            }
-            if (XDock.ActiveDocumentPane.IsActivated)
-            {
-                var x = XDock.ActiveDocumentPane.ActiveContent.DockHandler.Form as XBrowser;
-                Appender(x.Text + x.IsActivated + Environment.NewLine);
-            }
-            if (XDock.ActivePane.IsActivated)
-            {
-                var x = XDock.ActivePane.ActiveContent.DockHandler.Form as XBrowser;
-                Appender(x.Text + x.IsActivated + Environment.NewLine);
-            }
-            if (XDock.ActiveContent.DockHandler.IsActivated)
-            {
-                var x = XDock.ActiveContent.DockHandler.Form as XBrowser;
-                Appender(x.Text + x.IsActivated + Environment.NewLine);
-            }
-        }
-
-
+        
         #region Download
         /// <summary>
         /// we must store download metadata in a list, since CefSharp does not
         /// </summary>
-        private void InitDownloads()
+        public void startDownloads(string url)
         {
-            downloads = new Dictionary<int, DownloadItem>();
-            downloadNames = new Dictionary<int, string>();
-            downloadCancelRequests = new List<int>();
-        }
-
-        public Dictionary<int, DownloadItem> Downloads
-        {
-            get
-            {
-                return downloads;
-            }
-        }
-
-        public void UpdateDownloadItem(DownloadItem item)
-        {
-            lock (downloads)
-            {
-                // SuggestedFileName comes full only in the first attempt so keep it somewhere
-                if (item.SuggestedFileName != "")
-                {
-                    downloadNames[item.Id] = item.SuggestedFileName;
-                }
-
-                // Set it back if it is empty
-                if (item.SuggestedFileName == "" && downloadNames.ContainsKey(item.Id))
-                {
-                    item.SuggestedFileName = downloadNames[item.Id];
-                }
-
-                downloads[item.Id] = item;
-
-                //UpdateSnipProgress();
-            }
-        }
-
-        public string DownloadedPath(string url)
-        {
-            foreach(DownloadItem item in downloads.Values)
-            {
-                if (item.SuggestedFileName.Contains(url))
-                {
-                    return item.FullPath;
-                }
-            }
-            return null;
-        }
-
-        public bool DownloadsInProgress()
-        {
-            foreach (DownloadItem item in downloads.Values)
-            {
-                if (item.IsInProgress)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public List<int> CancelRequests
-        {
-            get
-            {
-                return downloadCancelRequests;
-            }
+            X.Browser.GetBrowser().GetHost().StartDownload(url);
         }
         
-        public void OpenDownloadsTab()
-        {
-            AddNewBrowserTab(DownloadsURL);
-        }
-
-
         #endregion
-        
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            history.Save();
+            bookmark.Save();
+            password.Save();
+            webshell.Save();
+            viewer.Clear();
+            Idm.Save();
+            Cef.Shutdown();
+        }
     }
 }

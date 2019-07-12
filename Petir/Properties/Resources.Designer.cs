@@ -63,19 +63,42 @@ namespace Petir.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Add_New {
+        internal static System.Drawing.Bitmap Add {
             get {
-                object obj = ResourceManager.GetObject("Add-New", resourceCulture);
+                object obj = ResourceManager.GetObject("Add", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to $(document).ready(function (){ $(&apos;head&apos;).append(&apos;&lt;script type=&quot;text/javascript&quot; src=&quot;pelitabangsa://browser/js/autobot.js&quot;&gt;&lt;/script&gt;&apos;); });.
+        /// </summary>
+        internal static string AddAutomationScript {
+            get {
+                return ResourceManager.GetString("AddAutomationScript", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to $(document).ready(function (){ $(&apos;body&apos;).append(&apos;&lt;menu id=&quot;monkeymenu&quot; type=&quot;context&quot;&gt;&lt;/menu&gt;&apos;); });
+        ///	$(document).ready(function (){ $(&apos;body&apos;).append(&apos;&lt;span style=&quot;bottom: 13px; right: 16px;position: fixed;&quot; class=&quot;context-menu-monkey&quot;&gt;Monkey&lt;/span&gt;&apos;); });
+        ///	script = document.createElement(&apos;script&apos;);
+        ///    script.type = &apos;text/javascript&apos;;
+        ///    script.text = &quot;$(function(){ $.contextMenu({ selector: &apos;.context-menu-monkey&apos;,  items: $.contextMenu.fromMenu($(&apos;#monkeymenu&apos;))    }); });&quot;;
+        ///    document.getElements [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string AddMonkeyMenu {
+            get {
+                return ResourceManager.GetString("AddMonkeyMenu", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Bing_background_1920x1200_2013_10_01 {
+        internal static System.Drawing.Bitmap Background {
             get {
-                object obj = ResourceManager.GetObject("Bing-background-1920x1200-2013-10-01", resourceCulture);
+                object obj = ResourceManager.GetObject("Background", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -93,6 +116,16 @@ namespace Petir.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap code {
+            get {
+                object obj = ResourceManager.GetObject("code", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Download {
             get {
                 object obj = ResourceManager.GetObject("Download", resourceCulture);
@@ -101,12 +134,11 @@ namespace Petir.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        ///   Looks up a localized string similar to (function() { var body = document.body, html = document.documentElement; var heigth = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight); return heigth; })();.
         /// </summary>
-        internal static System.Drawing.Bitmap Folder_Open {
+        internal static string getDocHeight {
             get {
-                object obj = ResourceManager.GetObject("Folder-Open", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ResourceManager.GetString("getDocHeight", resourceCulture);
             }
         }
         
@@ -121,12 +153,21 @@ namespace Petir.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        ///   Looks up a localized string similar to if(typeof jQuery==&apos;undefined&apos;)
+        ///{
+        ///    var headTag = document.getElementsByTagName(&quot;head&quot;)[0];
+        ///    var jqTag = document.createElement(&apos;script&apos;);
+        ///    jqTag.type = &apos;text/javascript&apos;;
+        ///    jqTag.src = &apos;pelitabangsa://browser/js/jquery.min.js&apos;;
+        ///    headTag.appendChild(jqTag);
+        ///	
+        ///}else{
+        ///	$(document).ready(function (){ $(&apos;head&apos;).append(&apos;&lt;script type=&quot;text/javascript&quot; src=&quot;pelitabangsa://browser/js/autobot.js&quot;&gt;&lt;/script&gt;&apos;); });
+        ///}.
         /// </summary>
-        internal static System.Drawing.Bitmap JS_Playground {
+        internal static string inject {
             get {
-                object obj = ResourceManager.GetObject("JS Playground", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ResourceManager.GetString("inject", resourceCulture);
             }
         }
         
@@ -146,6 +187,16 @@ namespace Petir.Properties {
         internal static System.Drawing.Bitmap Next {
             get {
                 object obj = ResourceManager.GetObject("Next", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap OpenFolder {
+            get {
+                object obj = ResourceManager.GetObject("OpenFolder", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -187,6 +238,25 @@ namespace Petir.Properties {
             get {
                 object obj = ResourceManager.GetObject("Save", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (function()
+        ///    					{
+        ///	    					var linksArray = new Array();
+        ///	    					for (var i = 0; i &lt; document.links.length; i++)
+        ///	    					{
+        ///	    						linksArray[i] = [String(document.links[i].innerHTML),
+        ///	    								String(document.links[i].innerText),
+        ///	    								String(document.links[i].href)];
+        ///	    					}
+        ///	    					return linksArray;
+        ///    					})();.
+        /// </summary>
+        internal static string scraplink {
+            get {
+                return ResourceManager.GetString("scraplink", resourceCulture);
             }
         }
         

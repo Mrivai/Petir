@@ -16,7 +16,8 @@ namespace Petir
     {
 
         public static string AppsPath = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
-        public static string ScriptPath = AppsPath + "scripts" + Path.DirectorySeparatorChar;
+        public static string ScriptPath = AppsPath + "scripts_monkey" + Path.DirectorySeparatorChar;
+        public static string ResourcePath = AppsPath + "resources" + Path.DirectorySeparatorChar;
         public string  ScriptFile = AppsPath + "settings.json";
         private Dictionary<string, string> _scriptCache = new Dictionary<string, string>();
         public Script Userscript;
@@ -34,6 +35,8 @@ namespace Petir
                 Utils.WriteFile(ScriptFile, JsonConvert.SerializeObject(s));
             if (!Directory.Exists(ScriptPath))
                 Directory.CreateDirectory(ScriptPath);
+            if (!Directory.Exists(ResourcePath))
+                Directory.CreateDirectory(ResourcePath);
             ReloadDataAsync();
         }
 
@@ -65,18 +68,18 @@ namespace Petir
                     toRun.Add(i);
             }
             //if (Userscript.InjectAPI) jika true  eval notification.js 
-            
             foreach (var i in toRun)//foreach angka di list angka
             {
                 //jika db[i].tipe == script dan bukan stylesheet
-                if (this[i].Type == UserScript.ValueType.Script)
-                    TryRunScript(i, window, ref useMenuCommands, ref menuContent);
-                else
-                    TryInjectCss(i, window);
+                //if (this[i].Type == UserScript.ValueType.Script)
+                    //TryRunScript(i, window, ref useMenuCommands, ref menuContent);
+                //else
+                    //TryInjectCss(i, window);
             }
         }
+        
 
-        private bool ShouldRunScript(int i, string url)
+        public bool ShouldRunScript(int i, string url)
         {
             if (!this[i].Enabled) return false;
 
@@ -104,16 +107,33 @@ namespace Petir
 
         public void InstallScript(string url,string code)
         {
-            var name = Utils.GetFileNameFromUrl(url);
-
-            Utils.WriteFileAsync(ScriptPath + name, code);
             var x = ParseUserScript.Parse(code, false);
+            var name = Utils.GetFileNameFromUrl(url);
+            Utils.WriteFileAsync(ScriptPath + name, code);
             x.Path = ScriptPath + name;
             if (x.Name == String.Empty)
                 x.Name = "Userscript from " + url;
             if (String.IsNullOrWhiteSpace(x.UpdateUrl))
                 x.UpdateUrl = url;
             AddScript(x);
+        }
+
+        public string GetBanana(int i)
+        {
+            if (Userscript.CacheScripts && _scriptCache.ContainsKey(this[i].Path))
+                return _scriptCache[this[i].Path];
+            else
+            {
+                string scriptcontent = Utils.ReadFile(ScriptPath + this[i].Path);
+                var content = "function Scriptmonkey_S" + i + "_proto() {";
+                if (Userscript.InjectAPI && this[i].RequiresApi)
+                {
+                    content += scriptcontent;
+                }
+                if (Userscript.CacheScripts)
+                    _scriptCache.Add(this[i].Path, scriptcontent);
+                return content;
+            }
         }
 
         public void AddScript(UserScript S)
@@ -288,6 +308,7 @@ namespace Petir
         {
             var Message = ex.Message;
             var StackTrace = ex.StackTrace;
+            var report = string.Format("[{0}]:{1}   {2} {3}", DateTime.Now.ToLongTimeString(), Title, Message, StackTrace);
             try
             {
                 if (!(new DirectoryInfo(Path)).Exists)
@@ -297,9 +318,8 @@ namespace Petir
                 if (!File.Exists(ErrorLogPath))
                     File.Create(ErrorLogPath).Close();
                 else
-                    using (FileStream fs = new FileStream(ErrorLogPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
-                    using (StreamWriter sw = new StreamWriter(fs))
-                        sw.WriteLine(string.Format("[{0}]:{1}   {2} {3}", DateTime.Now.ToLongTimeString(), Title, Message, StackTrace));
+                    Utils.WriteFileAsync(ErrorLogPath, report);
+                    
             }
             catch (Exception)
             {

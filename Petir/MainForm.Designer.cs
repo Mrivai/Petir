@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.XDock = new WeifenLuo.WinFormsUI.Docking.DockPanel();
             this.vS2005Theme1 = new WeifenLuo.WinFormsUI.Docking.VS2005Theme();
             this.SuspendLayout();
@@ -37,7 +38,7 @@
             this.XDock.AllowDrop = true;
             this.XDock.AutoSize = true;
             this.XDock.BackColor = System.Drawing.Color.White;
-            this.XDock.BackgroundImage = global::Petir.Properties.Resources.Bing_background_1920x1200_2013_10_01;
+            this.XDock.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("XDock.BackgroundImage")));
             this.XDock.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.XDock.Dock = System.Windows.Forms.DockStyle.Fill;
             this.XDock.DockBackColor = System.Drawing.Color.Transparent;
@@ -45,7 +46,7 @@
             this.XDock.Location = new System.Drawing.Point(0, 0);
             this.XDock.Name = "XDock";
             this.XDock.ShowAutoHideContentOnHover = false;
-            this.XDock.Size = new System.Drawing.Size(771, 450);
+            this.XDock.Size = new System.Drawing.Size(774, 459);
             this.XDock.TabIndex = 0;
             // 
             // MainForm
@@ -53,19 +54,23 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
+            this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BackColor = System.Drawing.Color.White;
+            this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(771, 450);
+            this.ClientSize = new System.Drawing.Size(774, 459);
             this.Controls.Add(this.XDock);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.IsMdiContainer = true;
+            this.KeyPreview = true;
             this.MaximumSize = new System.Drawing.Size(1400, 748);
-            this.MinimizeBox = false;
+            this.MinimumSize = new System.Drawing.Size(790, 498);
             this.Name = "MainForm";
             this.Text = "PelitaBangsa";
             this.TransparencyKey = System.Drawing.Color.White;
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
-            this.Load += new System.EventHandler(this.MainForm_Load);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();
 

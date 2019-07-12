@@ -1,21 +1,20 @@
 ﻿
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using CefSharp;
 using System.Windows.Forms;
-using System.Drawing;
 
-namespace Petir {
+namespace Petir
+{
     internal class SchemeHandler : IResourceHandler, IDisposable
     {
-        private static string appPath = Path.GetDirectoryName(Application.ExecutablePath) + @"\";
+        private static string appPath = Path.GetDirectoryName(Application.ExecutablePath) + @"\storage\";
 
         private string mimeType;
         private Stream stream;
-		XBrowser myForm;
+		private XBrowser myForm;
 		private Uri uri;
 		private string fileName;
 
@@ -26,7 +25,6 @@ namespace Petir {
 		public void Dispose() {
 			
 		}
-
 
 		//
 		// Summary:
@@ -50,15 +48,14 @@ namespace Petir {
 
 			// if url is blocked
 			/*if (!myForm.IsURLOk(request.Url)) {
-
 				// return true so it does not open up
 				return true;
 			}*/
 
 			// if url is browser file
-			if (uri.Host == "storage") {
-				fileName = appPath + uri.Host + fileName;
-				if (File.Exists(fileName)) {
+			if (uri.Host == "browser") {
+                fileName = appPath + fileName;
+                if (File.Exists(fileName)) {
 					Task.Factory.StartNew(() => {
 						using (callback) {
 							//var bytes = Encoding.UTF8.GetBytes(resource);
@@ -69,24 +66,10 @@ namespace Petir {
 							callback.Continue();
 						}
 					});
-
 					return true;
 				}
 			}
-
-			// if url is request for icon of another file
-			if (uri.Host == "fileicon") {
-				Task.Factory.StartNew(() => {
-					using (callback) {
-						stream = FileIconUtils.GetFileIcon(fileName, FileIconSize.Large);
-						mimeType = ResourceHandler.GetMimeType(".png");
-						callback.Continue();
-					}
-				});
-				return true;
-			}
-
-
+            
 			// by default reject
 			callback.Dispose();
 			return false;

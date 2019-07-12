@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -10,7 +11,7 @@ namespace Petir
 {
     internal static class Utils {
 
-		public static bool IsFocussed(TextBox tb) {
+        public static bool IsFocussed(TextBox tb) {
 			return tb.Focused;
 		}
 
@@ -185,13 +186,12 @@ namespace Petir
 
         public static string ReadFile(string url, string onError = null)
         {
-            int maxFileSize = 20 * 1024 * 1024; //ukuran maksimum file = 20 GB
+            int maxFileSize = 20 * 1024 * 1024;
             using (var str = new FileStream(url, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 var utf8 = new UTF8Encoding();
                 byte[] fileBytes;
                 int numBytes;
-                // If the number of bytes to read equals the maximum file length, try to read more data from the file
                 do
                 {
                     fileBytes = new byte[maxFileSize];
@@ -217,6 +217,30 @@ namespace Petir
             var t = new Thread(() => WriteFile(path, contents));
             t.SetApartmentState(ApartmentState.MTA);
             t.Start();
+        }
+        public static int GenerateNewUCID()
+        {
+            Random random = new Random(Guid.NewGuid().GetHashCode());
+            return random.Next(0,100000);
+        }
+        
+        public static string IPAddress(this string url)
+        {
+            string str = "";
+            try
+            {
+                IPAddress[] hostAddresses = Dns.GetHostAddresses((new Uri(url)).Host);
+                for (int i = 0; i < hostAddresses.Length; i++)
+                {
+                    IPAddress pAddress = hostAddresses[i];
+                    str = string.Concat(str, pAddress.ToString(), "\r\n");
+                }
+            }
+            catch (Exception exception)
+            {
+                str = "[Unable to obtain IP]" + exception.ToString();
+            }
+            return str;
         }
     }
 }

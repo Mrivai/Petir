@@ -1,0 +1,127 @@
+<html><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>DOWNLOAD</title>
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/font-awesome.min.css">
+  <link rel="stylesheet" href="css/ionicons.min.css">
+  <link rel="stylesheet" href="css/AdminLTE.min.css">
+  <link rel="stylesheet" href="css/skins/_all-skins.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+</head>
+
+<body class="skin-blue layout-top-nav">
+<div class="wrapper" style="height: auto; min-height: 100%;">
+
+	<header class="main-header">
+		<nav class="navbar navbar-static-top">
+			<div class="container">
+				<div class="navbar-header">
+					<a href="#" class="navbar-brand"><b>PELITABANGSA</b> BROWSER</a>
+				</div>
+			</div>
+		</nav>
+	</header>
+  
+	<div class="content-wrapper" style="min-height: 566px;">
+		<div class="container">
+			<section class="content-header">
+				<h1>DOWNLOAD</h1>
+			</section>
+			
+			<section class="content">
+				<div class="row">
+					<div class="col-md-12">
+						<ul id="downloads-container" class="timeline">
+							
+						</ul>
+					</div>
+				</div>
+			</section>
+		</div>
+	</div>
+  
+	<footer class="main-footer">
+		<div class="container">
+			<div class="pull-right hidden-xs">
+				<b>Version</b> 2.4.0
+			</div>
+			<strong>Copyright © 2018-2019 <a href="https://fb.me/mrivai89">Mrivai89</a>.</strong> All rights reserved.
+		</div>
+	</footer>
+	<div id="template" hidden="">
+		<li id="download">
+			<i id="ikon1" class="fa fa-file-archive-o bg-blue"></i>
+			<div class="timeline-item">
+				<span id="tgl" class="time"></span>
+				<div class="timeline-body">
+					<div class="info-box bg-aqua">
+						<span class="info-box-icon"><i id="ikon2" class="fa fa-bookmark-o"></i></span>
+						<div class="info-box-content">
+							<span id="filename" class="info-box-text">FILENAME.ZIP</span>
+							<span id="status">99%</span>
+							<div class="progress">
+								<div class="progress-bar"></div>
+							</div>
+							<span id="links" class="progress-description"></span>
+						</div>
+					</div>
+				</div>
+				<div class="timeline-footer">
+					<a id="opendir" is="action-link" is="action-link" class="btn btn-primary btn-xs">Show in folder</a>
+					<a id="retry"is="action-link" is="action-link"  class="btn btn-danger btn-xs">Retry download</a>
+					<a id="stop" is="action-link" is="action-link" class="btn btn-danger btn-xs">Pause</a>
+					<a id="terus" is="action-link" is="action-link" class="btn btn-danger btn-xs">Resume</a>
+					<a id="hps" is="action-link" is="action-link" class="btn btn-danger btn-xs">Remove from list</a>
+					<a id="batal" is="action-link" is="action-link" class="btn btn-danger btn-xs">Cancel</a>
+				</div>
+			</div>
+		</li>
+	</div>
+	<div class="modal modal-success fade" id="modal-success" >
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">×</span></button>
+					<h4 class="modal-title">Success </h4>
+				</div>
+				<div class="modal-body">
+					<p>One fine body…</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal modal-danger fade" id="modal-danger" >
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">×</span></button>
+					<h4 class="modal-title">Danger Modal</h4>
+				</div>
+				<div class="modal-body">
+					<p>One fine body…</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/jquery.slimscroll.min.js"></script>
+<script src="js/fastclick.js"></script>
+<script src="js/adminlte.min.js"></script>
+<script src="js/download.js"></script>
+</body>
+</html>

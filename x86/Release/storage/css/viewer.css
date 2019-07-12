@@ -1,0 +1,214 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+body {
+	font-family: 'Open Sans', sans-serif;
+	margin: 0px;
+	z-index: 2;
+	background-image: url("../img/bg_image.jpeg");
+	background-repeat: no-repeat;
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+}
+.header {
+	width: 100%;
+	top: 0px;
+	position: fixed;
+	height: 60px;
+	color: white;
+	font-weight: bold;
+	background-color: #0605056e;
+	letter-spacing: 1px;
+	z-index: 10;
+}
+.header-title {
+    font-size: 20px;
+	padding: 15px;
+	padding-left: 90px;
+}
+.header-title span {
+	vertical-align: top;
+}
+.header-title img {
+	width: 40px;
+	position: relative;
+    top: -5px;
+}
+.container {
+	padding-left: 5%;
+    padding-right: 5%;
+    margin-top: 100px;
+}
+.url-input-part {
+	transition: 0.5s;
+	position: relative;
+	top: 100px;
+}
+.url-input-part input {
+	width: 70%;
+}
+
+input {
+	font-size: 17px;
+	height: 45px;
+	padding: 5px;
+    padding-left: 30px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    letter-spacing: 1px;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    width: 25%;
+    height: 45px;
+    padding: 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    vertical-align: top;
+    outline: none;
+    letter-spacing: 1px;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+.source-code-display-part {
+	margin-top: 50px;
+	width: 100%;
+	height: 0px;
+}
+.source-code-display-part .code-source {
+	width: 70%;
+	display: inline-block;
+
+}
+.source-code-display-part pre {
+	height: 450px;
+	width: 100%;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	padding: 10px 15px;
+	box-sizing: border-box;
+	background-color: white;
+	font-size: 14px;
+	letter-spacing: 1px;
+	overflow: auto;
+	margin:0px;
+}
+mark {
+    background-color: #3b9ff3;
+    padding:2px 0px;
+}
+
+.source-code-display-part .tag-display-wrapper {
+	height: 450px;
+	display: inline-block;
+	border:1px solid #ccc;
+	vertical-align: top;
+	width: 25%;
+    border-radius: 4px;
+    background-color: white;
+}
+.source-code-display-part .count-scroll-view {
+	overflow-y: auto;
+	height: 340px;
+}
+.source-code-display-part .tag-display {
+	vertical-align: top;
+	width: 100%
+}
+.source-code-display-part .tag-display table{
+	width:90%;
+    margin: 10px;
+}
+.source-code-display-part .tag-display table tbody{
+	height:300px;
+	overflow-y: auto;
+}
+.source-code-display-part .tag-display table thead th{
+    padding: 10px;
+    border-bottom: 2px solid #ccc;
+    text-align: left;
+}
+.source-code-display-part .tag-display table thead th:first-child{
+	width:60%;
+}
+.source-code-display-part .tag-display table tbody tr td{
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+.source-code-display-part .tag-display table tbody tr:hover{
+	background-color: #3b9ff3 !important;
+	cursor: pointer;
+}
+.source-code-display-part .tag-display table tbody tr td:first-child{
+	width:60%;
+}
+::-webkit-scrollbar {
+    width: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+}
+::-webkit-scrollbar-thumb {
+    background: #888; 
+    border-radius:5px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #555; 
+}
+
+.image-wrapper {
+	height: 80px;
+	border-radius: 60px;
+	width: 80px;
+	border: 4px solid #fff;
+	box-shadow: 0 0 0 5px #4CAF50;
+	text-align: center;
+	overflow: hidden;
+	white-space: nowrap;
+	transition: 0.3s;
+	display: inline-block;
+}
+.image-wrapper img {
+	width: 80px;
+	height: 80px;
+}
+.developed-by-wrapper {
+	display: inline-block;
+	vertical-align: top;
+	margin-left: 20px;
+}
+.developed-by-wrapper .text{
+	margin: 0px;
+	color: #ffffff94;
+	font-size: 13px;
+}
+
+.developed-by-wrapper .developer-name{
+    font-weight: bold;
+    color: white;
+}
+.loading-overlay{
+	display: none;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	top: 0px;
+	text-align: center;
+	background-color: #00000063;
+	z-index: 100;
+}
+.loading-overlay img{
+	width: 70px;
+	margin-top: 20%;
+}
+.loading-overlay .loading-text{
+	font-size: 19px;
+    font-weight: bold;
+}
